@@ -87,10 +87,10 @@ def deleteMovie(m_id):
     else:
         return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
 
-@moviesBP.route("/home/movies/genre/<string:genre_name>", methods=['GET'])
-def showMoviesByGenre(genre_name):
+@moviesBP.route("/home/movies/genre/<string:genre>", methods=['GET'])
+def showMoviesByGenre(genre):
     pipeline = [
-        { "$match" : { "Genre" : genre_name} },
+        { "$match" : { "Genre" : genre} },
     ]
     data_to_return = []
     for movie in movies.aggregate(pipeline):
@@ -98,5 +98,17 @@ def showMoviesByGenre(genre_name):
         for review in movie['reviews']:
             review['_id'] = str(review['_id'])
         data_to_return.append(movie)
+    return make_response(jsonify(data_to_return), 200)
 
+@moviesBP.route("/home/movies/title/<string:title>", methods=['GET'])
+def showMoviesByTitleName(title):
+    pipeline = [
+        { "$match" : { "Series_Title" : title} },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
     return make_response(jsonify(data_to_return), 200)
