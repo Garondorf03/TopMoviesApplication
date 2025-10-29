@@ -88,7 +88,7 @@ def deleteMovie(m_id):
         return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
 
 @moviesBP.route("/home/movies/title/<string:title>", methods=['GET'])
-def showMoviesByTitleName(title):
+def showMoviesByTitle(title):
     pipeline = [
         { "$match" : { "Series_Title" : title} },
     ]
@@ -162,7 +162,7 @@ def showMoviesByReleaseYear(year):
         return make_response(jsonify( {"error" : "No movies were found for the year " + str(year)} ), 404)
     return make_response(jsonify(data_to_return), 200)
 
-@moviesBP.route("/home/movies/releasedBetween/<int:lower_year>/<int:higher_year>", methods=['GET'])
+@moviesBP.route("/home/movies/released_between/<int:lower_year>/<int:higher_year>", methods=['GET'])
 def showMoviesReleasedBetweenYears(lower_year, higher_year):
     pipeline = [
         { "$match" : { "Released_Year" : { "$gte" : lower_year, "$lte" : higher_year} } },

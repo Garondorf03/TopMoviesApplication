@@ -67,3 +67,18 @@ def deleteReview(m_id, r_id):
         "$pull" : {"reviews" : {"_id" : ObjectId(r_id)}}
     })
     return make_response(jsonify({}), 200)
+
+@reviewsBP.route("/home/movies/reviewed_by/<string:username>", methods=['GET'])
+def showMoviesReviewedByUser(username):
+    pipeline = [
+        { "$match" : { "reviews.username" : username} },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No reviews were found for the user " + username} ), 404)
+    return make_response(jsonify(data_to_return), 200)
