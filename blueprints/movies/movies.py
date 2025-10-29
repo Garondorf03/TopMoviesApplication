@@ -112,3 +112,16 @@ def showMoviesByTitleName(title):
             review['_id'] = str(review['_id'])
         data_to_return.append(movie)
     return make_response(jsonify(data_to_return), 200)
+
+@moviesBP.route("/home/movies/minrating/<float:minrating>", methods=['GET'])
+def showMoviesAboveMinRating(minrating):
+    pipeline = [
+        { "$match" : { "IMDB_Rating" : { "$gte" : minrating} } },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
+    return make_response(jsonify(data_to_return), 200)
