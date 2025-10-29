@@ -74,8 +74,6 @@ def deletePlatform(m_id, p_id):
         { "movie_id": ObjectId(m_id) },
         { "$pull": { "platforms": { "_id": ObjectId(p_id)}}}
     )
-
-    # Check if any document was actually modified
     if result.modified_count == 0:
         return make_response(jsonify({"Error": "Movie ID or Platform ID not found"}), 404)
 

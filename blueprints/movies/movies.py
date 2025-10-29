@@ -176,3 +176,22 @@ def showMoviesReleasedBetweenYears(lower_year, higher_year):
     if not data_to_return:
         return make_response(jsonify( {"error" : "No movies were found between the years " + str(lower_year) + " and " + str(higher_year)} ), 404)
     return make_response(jsonify(data_to_return), 200)
+
+@moviesBP.route("/home/movies/genre_avg_rating", methods=['GET'])
+def showGenresAvgRating():
+    pipeline = [
+        {
+            "$group": { "_id": "$Genre", "average_rating": { "$avg": "$IMDB_Rating" }, "count": { "$sum": 1 } } # also count number of movies in that genre
+        },
+        {
+            "$sort": { "average_rating": -1 }  # sort descending by average rating
+        }
+    ]
+    data_to_return = []
+    for genre in movies.aggregate(pipeline):
+        data_to_return.append({
+            "genre": genre["_id"],
+            "average_rating": round(genre["average_rating"], 2),
+            "number_of_movies": genre["count"]
+        })
+    return make_response(jsonify(data_to_return), 200)
