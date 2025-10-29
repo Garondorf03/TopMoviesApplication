@@ -87,21 +87,6 @@ def deleteMovie(m_id):
     else:
         return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
 
-@moviesBP.route("/home/movies/genre/<string:genre>", methods=['GET'])
-def showMoviesByGenre(genre):
-    pipeline = [
-        { "$match" : { "Genre" : genre} },
-    ]
-    data_to_return = []
-    for movie in movies.aggregate(pipeline):
-        movie['_id'] = str(movie['_id'])
-        for review in movie['reviews']:
-            review['_id'] = str(review['_id'])
-        data_to_return.append(movie)
-    if not data_to_return:
-        return make_response(jsonify( {"error" : "No movies were found for the genre " + genre} ), 404)
-    return make_response(jsonify(data_to_return), 200)
-
 @moviesBP.route("/home/movies/title/<string:title>", methods=['GET'])
 def showMoviesByTitleName(title):
     pipeline = [
@@ -115,6 +100,36 @@ def showMoviesByTitleName(title):
         data_to_return.append(movie)
     if not data_to_return:
         return make_response(jsonify( {"error" : "No movies were found for the title " + title} ), 404)
+    return make_response(jsonify(data_to_return), 200)
+
+@moviesBP.route("/home/movies/director/<string:director>", methods=['GET'])
+def showMoviesByDirector(director):
+    pipeline = [
+        { "$match" : { "Director" : director} },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found for the director " + director} ), 404)
+    return make_response(jsonify(data_to_return), 200)
+
+@moviesBP.route("/home/movies/genre/<string:genre>", methods=['GET'])
+def showMoviesByGenre(genre):
+    pipeline = [
+        { "$match" : { "Genre" : genre} },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found for the genre " + genre} ), 404)
     return make_response(jsonify(data_to_return), 200)
 
 @moviesBP.route("/home/movies/minrating/<float:minrating>", methods=['GET'])
