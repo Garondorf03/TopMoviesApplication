@@ -98,6 +98,8 @@ def showMoviesByGenre(genre):
         for review in movie['reviews']:
             review['_id'] = str(review['_id'])
         data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found for the genre " + genre} ), 404)
     return make_response(jsonify(data_to_return), 200)
 
 @moviesBP.route("/home/movies/title/<string:title>", methods=['GET'])
@@ -111,6 +113,8 @@ def showMoviesByTitleName(title):
         for review in movie['reviews']:
             review['_id'] = str(review['_id'])
         data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found for the title " + title} ), 404)
     return make_response(jsonify(data_to_return), 200)
 
 @moviesBP.route("/home/movies/minrating/<float:minrating>", methods=['GET'])
@@ -124,4 +128,6 @@ def showMoviesAboveMinRating(minrating):
         for review in movie['reviews']:
             review['_id'] = str(review['_id'])
         data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found with a rating more than or equal to " + str(minrating)} ), 404)
     return make_response(jsonify(data_to_return), 200)
