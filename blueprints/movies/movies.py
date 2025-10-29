@@ -146,3 +146,33 @@ def showMoviesAboveMinRating(minrating):
     if not data_to_return:
         return make_response(jsonify( {"error" : "No movies were found with a rating more than or equal to " + str(minrating)} ), 404)
     return make_response(jsonify(data_to_return), 200)
+
+@moviesBP.route("/home/movies/released/<int:year>", methods=['GET'])
+def showMoviesByReleaseYear(year):
+    pipeline = [
+        { "$match" : { "Released_Year" : year} },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found for the year " + str(year)} ), 404)
+    return make_response(jsonify(data_to_return), 200)
+
+@moviesBP.route("/home/movies/releasedBetween/<int:lower_year>/<int:higher_year>", methods=['GET'])
+def showMoviesReleasedBetweenYears(lower_year, higher_year):
+    pipeline = [
+        { "$match" : { "Released_Year" : { "$gte" : lower_year, "$lte" : higher_year} } },
+    ]
+    data_to_return = []
+    for movie in movies.aggregate(pipeline):
+        movie['_id'] = str(movie['_id'])
+        for review in movie['reviews']:
+            review['_id'] = str(review['_id'])
+        data_to_return.append(movie)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No movies were found between the years " + str(lower_year) + " and " + str(higher_year)} ), 404)
+    return make_response(jsonify(data_to_return), 200)
