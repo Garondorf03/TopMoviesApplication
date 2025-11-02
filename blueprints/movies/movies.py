@@ -69,7 +69,7 @@ def addNewMovie():
         new_movie = {
             "Director" : request.form['Director'],
             "Genre" : request.form['Genre'],
-            "IMDB_Rating" : request.form['IMDB_Rating'],
+            "IMDB_Rating" : float(request.form['IMDB_Rating']),
             "Released_Year" : int(request.form['Released_Year']),
             "Runtime" : request.form['Runtime'],
             "Series_Title" : request.form['Series_Title'],
@@ -95,7 +95,7 @@ def editMovie(m_id):
             "$set" : {
                 "Director" : request.form['Director'],
                 "Genre" : request.form['Genre'],
-                "IMDB_Rating" : request.form['IMDB_Rating'],
+                "IMDB_Rating" : float(request.form['IMDB_Rating']),
                 "Released_Year" : int(request.form['Released_Year']),
                 "Runtime" : request.form['Runtime'],
                 "Series_Title" : request.form['Series_Title']
