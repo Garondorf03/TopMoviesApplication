@@ -2,7 +2,7 @@ from flask import Blueprint, request, make_response, jsonify
 import jwt
 import datetime
 import bcrypt
-from decorators import jwt_required, admin_required
+from decorators import jwt_required
 import globals
 
 authBP = Blueprint("authBP", __name__)
