@@ -1,4 +1,4 @@
-user_list:
+Admin example:
 
     "name" : "Mason Murphy",
     "username" : "mason03",
@@ -6,11 +6,7 @@ user_list:
     "email" : "mason@mancity.net",
     "admin" : True
 
-    "name" : "Ami Morrow",
-    "username" : "ami04",
-    "password" : b"ami_m",
-    "email" : "ami@makeup.net",
-    "admin" : False
+Non admin example:
 
     "name" : "Harrison Gordon",
     "username" : "harrison03",
