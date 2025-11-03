@@ -10,6 +10,26 @@ authBP = Blueprint("authBP", __name__)
 blacklist = globals.db.blacklist
 users = globals.db.users
 
+@authBP.route("/home/register", methods=['POST'])
+def register():
+    if 'name' in request.form and 'username' in request.form and 'password' in request.form and 'email' in request.form:
+        if not users.find_one({"username": request.form["username"]}):
+            pw_bytes = bytes(request.form["password"], "UTF-8")
+            hashed_pw = bcrypt.hashpw(pw_bytes, bcrypt.gensalt())
+            new_user = {
+                "name": request.form.get("name"),
+                "username": request.form["username"],
+                "password": hashed_pw,
+                "email": request.form["email"],
+                "admin": False
+            }
+            users.insert_one(new_user)
+            return make_response(jsonify({"message": "User " + request.form["username"] + " registered successfully"}), 201)
+        else:
+            return make_response(jsonify({"error": "Username " + request.form["username"] + " already exists"}), 409)
+    else:
+        return make_response(jsonify({"error": "Missing Form Data"}), 400)
+
 @authBP.route("/home/login", methods=['GET'])
 def login():
     auth = request.authorization

@@ -6,6 +6,7 @@ import globals, random
 moviesBP = Blueprint("moviesBP", __name__)
 
 movies = globals.db.movies
+platforms = globals.db.platforms
 
 locations = {
     "Los Angeles": [34.00, -118.50, 34.10, -118.20],
@@ -59,13 +60,10 @@ def showOneMovie(m_id):
 def addNewMovie():
     if ('Director' in request.form and 'Genre' in request.form and 'IMDB_Rating' in request.form and
             'Released_Year' in request.form and 'Runtime' in request.form and 'Series_Title' in request.form):
-
         location_filmed = random.choice(list(locations.keys()))
         coordinates = locations[location_filmed]
-
         rand_lat = coordinates[0] + ((coordinates[2] - coordinates[0]) * random.random())
         rand_lng = coordinates[1] + ((coordinates[3] - coordinates[1]) * random.random())
-
         new_movie = {
             "Director" : request.form['Director'],
             "Genre" : request.form['Genre'],
@@ -80,8 +78,14 @@ def addNewMovie():
             },
             "reviews" : []
         }
-        new_movie_id = movies.insert_one(new_movie)
-        new_movie_link = "http://localhost:5000/home/movies/" + str(new_movie_id.inserted_id)
+        movie_result = movies.insert_one(new_movie)
+        new_movie_id = movie_result.inserted_id
+        new_platform_doc = {
+            "movie_id": new_movie_id,
+            "platforms": []
+        }
+        platforms.insert_one(new_platform_doc)
+        new_movie_link = "http://localhost:5000/home/movies/" + str(new_movie_id)
         return make_response(jsonify( {"url" : new_movie_link} ), 201)
     else:
         return make_response(jsonify( {"error" : "Missing Form Data"} ), 404)
@@ -115,6 +119,7 @@ def editMovie(m_id):
 def deleteMovie(m_id):
     result = movies.delete_one( { "_id" : ObjectId(m_id) } )
     if result.deleted_count == 1:
+        platforms.delete_one({"movie_id": ObjectId(m_id)})
         return make_response(jsonify( {"message" : "Movie ID " + m_id + " deleted successfully"} ), 200)
     else:
         return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
@@ -235,7 +240,6 @@ def showNearbyFilmedMovies(m_id):
     movie = movies.find_one({"_id": ObjectId(m_id)})
     if not movie or "location" not in movie:
         return make_response(jsonify({"error": "Movie ID " + m_id + " was not found or it has no location"}), 404)
-
     pipeline = [
         {
             "$geoNear": {
@@ -249,7 +253,6 @@ def showNearbyFilmedMovies(m_id):
         {"$project": {"Series_Title": 1, "Filming_Location": 1, "distance": 1}},
         {"$limit": 5}
     ]
-
     nearby = list(movies.aggregate(pipeline))
     for movie_document in nearby:
         movie_document["_id"] = str(movie_document["_id"])

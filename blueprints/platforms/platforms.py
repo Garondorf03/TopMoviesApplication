@@ -43,17 +43,10 @@ def addPlatform(m_id):
             'name': request.form['name'],
             'subscription_required': request.form['subscription_required'].lower()
         }
-        document_exists = platforms.find_one({"movie_id": ObjectId(m_id)})
-        if document_exists:
-            platforms.update_one(
-                { "movie_id": ObjectId(m_id) },
-                { "$push": { "platforms": new_platform } }
-            )
-        else:
-            platforms.insert_one({
-                "movie_id": ObjectId(m_id),
-                "platforms": [new_platform]
-            })
+        platforms.update_one(
+            { "movie_id": ObjectId(m_id) },
+            { "$push": { "platforms": new_platform } }
+        )
         new_platform_link = "http://localhost:5000/home/movies/" + m_id + "/platforms/" + str(new_platform['_id'])
         return make_response(jsonify({"url": new_platform_link}), 201)
     else:
