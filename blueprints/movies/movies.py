@@ -120,7 +120,7 @@ def editMovie(m_id):
             edited_movie_link = "http://localhost:5000/home/movies/" + m_id
             return make_response(jsonify( {"url" : edited_movie_link} ), 200)
         else:
-            return make_response(jsonify( {"error" : "Invalid Movie ID"} ), 404)
+            return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
     else:
         return make_response(jsonify( {"error" : "Missing Form Data"} ), 404)
 

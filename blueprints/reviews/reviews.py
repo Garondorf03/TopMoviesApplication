@@ -39,17 +39,20 @@ def addReview(m_id):
             'review' : request.form['review'],
             'username' : request.form['username']
         }
-        movies.update_one( { "_id" : ObjectId(m_id) }, {
+        result = movies.update_one( { "_id" : ObjectId(m_id) }, {
             "$push" : { "reviews" : new_review}
         })
-        activity_logs.insert_one({
-            'movie_id' : m_id,
-            'review_id' : str(new_review['_id']),
-            'action': "review created",
-            'timestamp': datetime.datetime.utcnow()
-        })
-        new_review_link = "http://localhost:5000/home/movies/" + m_id + "/reviews/" + str(new_review['_id'])
-        return make_response(jsonify( {"url" : new_review_link} ), 201)
+        if result.modified_count == 1:
+            activity_logs.insert_one({
+                'movie_id' : m_id,
+                'review_id' : str(new_review['_id']),
+                'action': "review created",
+                'timestamp': datetime.datetime.utcnow()
+            })
+            new_review_link = "http://localhost:5000/home/movies/" + m_id + "/reviews/" + str(new_review['_id'])
+            return make_response(jsonify( {"url" : new_review_link} ), 201)
+        else:
+            return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
     else:
         return make_response(jsonify( {"error" : "Missing Form Data"} ), 404)
 
@@ -62,19 +65,22 @@ def editReview(m_id, r_id):
             "reviews.$.review" : request.form['review'],
             "reviews.$.username" : request.form['username']
         }
-        movies.update_one({
+        result = movies.update_one({
             "reviews._id" : ObjectId(r_id)
         }, {
             "$set" : edited_review
         })
-        activity_logs.insert_one({
-            'movie_id' : m_id,
-            'review_id' : r_id,
-            'action': "review edited",
-            'timestamp': datetime.datetime.utcnow()
-        })
-        edited_review_url = "http://localhost:5000/home/movies/" + m_id + "/reviews/" + r_id
-        return make_response(jsonify({"url" : edited_review_url}), 200)
+        if result.modified_count == 1:
+            activity_logs.insert_one({
+                'movie_id' : m_id,
+                'review_id' : r_id,
+                'action': "review edited",
+                'timestamp': datetime.datetime.utcnow()
+            })
+            edited_review_url = "http://localhost:5000/home/movies/" + m_id + "/reviews/" + r_id
+            return make_response(jsonify({"url" : edited_review_url}), 200)
+        else:
+            return make_response(jsonify( {"error" : "Review ID " + r_id + " was not found for Movie ID " + m_id} ), 404)
     else:
         return make_response(jsonify( {"error" : "Missing Form Data"} ), 404)
 
