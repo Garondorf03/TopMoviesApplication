@@ -72,7 +72,24 @@ def logout():
     })
     return make_response(jsonify({'message' : 'Logout successful'}), 200 )
 
+@authBP.route("/home/admin/users/<string:username>", methods=['DELETE'])
+@jwt_required
+@admin_required
+def deleteUser(username):
+    result = globals.db.users.delete_one({ "username": username })
+    if result.deleted_count == 1:
+        activity_logs.insert_one({
+            'user': username,
+            'action': "user deleted",
+            'timestamp': datetime.datetime.utcnow()
+        })
+        return make_response(jsonify({"message": "User " + username + " deleted successfully"}), 200)
+    else:
+        return make_response(jsonify({"error": "User " + username + " was not found"}), 404)
+
+
 @authBP.route("/home/admin/activity_logs", methods=['GET'])
+@jwt_required
 @admin_required
 def showAllActivityLogs():
     page_num, page_size = 1, 10
