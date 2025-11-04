@@ -75,8 +75,15 @@ def logout():
 @authBP.route("/home/admin/activity_logs", methods=['GET'])
 @admin_required
 def showAllActivityLogs():
+    page_num, page_size = 1, 10
+    if request.args.get('pn'):
+        page_num = int(request.args.get('pn'))
+    if request.args.get('ps'):
+        page_size = int(request.args.get('ps'))
+    page_start = (page_size * (page_num - 1))
+
     data_to_return = []
-    for log in activity_logs.find():
+    for log in activity_logs.find().skip(page_start).limit(page_size):
         log['_id'] = str(log['_id'])
         data_to_return.append(log)
     if not data_to_return:
