@@ -9,6 +9,7 @@ authBP = Blueprint("authBP", __name__)
 
 blacklist = globals.db.blacklist
 users = globals.db.users
+activity_logs = globals.db.activity_logs
 
 @authBP.route("/home/register", methods=['POST'])
 def register():
@@ -24,6 +25,11 @@ def register():
                 "admin": False
             }
             users.insert_one(new_user)
+            activity_logs.insert_one({
+                'user': request.form["username"],
+                'action': "new user registered",
+                'timestamp': datetime.datetime.utcnow()
+            })
             return make_response(jsonify({"message": "User " + request.form["username"] + " registered successfully"}), 201)
         else:
             return make_response(jsonify({"error": "Username " + request.form["username"] + " already exists"}), 409)
@@ -42,6 +48,11 @@ def login():
                     'admin' : user['admin'],
                     'exp' : datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes = 30)
                 }, globals.secretKey, algorithm='HS256')
+                activity_logs.insert_one({
+                    'user': auth.username,
+                    'action': "user login",
+                    'timestamp': datetime.datetime.utcnow()
+                })
                 return make_response(jsonify({'token' : token}), 200)
             else:
                 return make_response(jsonify({'message' : 'Incorrect password'}), 401)
@@ -54,4 +65,9 @@ def login():
 def logout():
     token = request.headers['x-access-token']
     blacklist.insert_one({"token":token})
+    activity_logs.insert_one({
+        'token': token,
+        'action': "user logout",
+        'timestamp': datetime.datetime.utcnow()
+    })
     return make_response(jsonify({'message' : 'Logout successful'}), 200 )

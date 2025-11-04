@@ -1,11 +1,12 @@
 from flask import Blueprint, request, make_response, jsonify
 from bson import ObjectId
 from decorators import jwt_required, admin_required
-import globals
+import globals, datetime
 
 reviewsBP = Blueprint("reviewsBP", __name__)
 
 movies = globals.db.movies
+activity_logs = globals.db.activity_logs
 
 @reviewsBP.route("/home/movies/<string:m_id>/reviews", methods=['GET'])
 def showAllReviews(m_id):
@@ -41,6 +42,12 @@ def addReview(m_id):
         movies.update_one( { "_id" : ObjectId(m_id) }, {
             "$push" : { "reviews" : new_review}
         })
+        activity_logs.insert_one({
+            'movie_id' : m_id,
+            'review_id' : str(new_review['_id']),
+            'action': "review created",
+            'timestamp': datetime.datetime.utcnow()
+        })
         new_review_link = "http://localhost:5000/home/movies/" + m_id + "/reviews/" + str(new_review['_id'])
         return make_response(jsonify( {"url" : new_review_link} ), 201)
     else:
@@ -60,6 +67,12 @@ def editReview(m_id, r_id):
         }, {
             "$set" : edited_review
         })
+        activity_logs.insert_one({
+            'movie_id' : m_id,
+            'review_id' : r_id,
+            'action': "review edited",
+            'timestamp': datetime.datetime.utcnow()
+        })
         edited_review_url = "http://localhost:5000/home/movies/" + m_id + "/reviews/" + r_id
         return make_response(jsonify({"url" : edited_review_url}), 200)
     else:
@@ -75,6 +88,12 @@ def deleteReview(m_id, r_id):
         "$pull" : {"reviews" : {"_id" : ObjectId(r_id)}}
     })
     if result.modified_count == 1:
+        activity_logs.insert_one({
+            'movie_id' : m_id,
+            'review_id' : r_id,
+            'action': "review deleted",
+            'timestamp': datetime.datetime.utcnow()
+        })
         return make_response(jsonify( {"message" : "Review ID " + r_id + " deleted successfully"} ), 200)
     else:
         return make_response(jsonify( {"error" : "Review ID " + r_id + " was not found for Movie ID " + m_id} ), 404)

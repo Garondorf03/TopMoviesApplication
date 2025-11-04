@@ -1,12 +1,13 @@
 from flask import Blueprint, request, make_response, jsonify
 from bson import ObjectId
 from decorators import jwt_required, admin_required
-import globals
+import globals, datetime
 
 platformsBP = Blueprint("platformsBP", __name__)
 
 movies = globals.db.movies
 platforms = globals.db.platforms
+activity_logs = globals.db.activity_logs
 
 @platformsBP.route("/home/movies/<string:m_id>/platforms", methods=['GET'])
 def showAllPlatforms(m_id):
@@ -47,6 +48,12 @@ def addPlatform(m_id):
             { "movie_id": ObjectId(m_id) },
             { "$push": { "platforms": new_platform } }
         )
+        activity_logs.insert_one({
+            'movie_id' : m_id,
+            'platform_id' : str(new_platform['_id']),
+            'action': "platform created",
+            'timestamp': datetime.datetime.utcnow()
+        })
         new_platform_link = "http://localhost:5000/home/movies/" + m_id + "/platforms/" + str(new_platform['_id'])
         return make_response(jsonify({"url": new_platform_link}), 201)
     else:
@@ -64,6 +71,12 @@ def editPlatform(m_id, p_id):
             { "platforms._id": ObjectId(p_id) },
             { "$set": edited_platform }
         )
+        activity_logs.insert_one({
+            'movie_id' : m_id,
+            'platform_id' : p_id,
+            'action': "platform edited",
+            'timestamp': datetime.datetime.utcnow()
+        })
         edited_platform_url = "http://localhost:5000/home/movies/" + m_id + "/platforms/" + p_id
         return make_response(jsonify({"url": edited_platform_url}), 200)
     else:
@@ -79,4 +92,10 @@ def deletePlatform(m_id, p_id):
     )
     if result.modified_count == 0:
         return make_response(jsonify({"Error": "Movie ID or Platform ID not found"}), 404)
+    activity_logs.insert_one({
+        'movie_id' : m_id,
+        'platform_id' : p_id,
+        'action': "platform deleted",
+        'timestamp': datetime.datetime.utcnow()
+    })
     return make_response(jsonify({"Message": "Platform ID " +  p_id + " deleted successfully"}), 200)

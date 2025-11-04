@@ -1,12 +1,13 @@
 from flask import Blueprint, request, make_response, jsonify
 from bson import ObjectId
 from decorators import jwt_required, admin_required
-import globals, random
+import globals, random, datetime
 
 moviesBP = Blueprint("moviesBP", __name__)
 
 movies = globals.db.movies
 platforms = globals.db.platforms
+activity_logs = globals.db.activity_logs
 
 locations = {
     "Los Angeles": [34.00, -118.50, 34.10, -118.20],
@@ -85,6 +86,11 @@ def addNewMovie():
             "platforms": []
         }
         platforms.insert_one(new_platform_doc)
+        activity_logs.insert_one({
+            'movie_id' : new_movie_id,
+            'action': "movie created",
+            'timestamp': datetime.datetime.utcnow()
+        })
         new_movie_link = "http://localhost:5000/home/movies/" + str(new_movie_id)
         return make_response(jsonify( {"url" : new_movie_link} ), 201)
     else:
@@ -106,6 +112,11 @@ def editMovie(m_id):
             }
         })
         if result.matched_count == 1:
+            activity_logs.insert_one({
+                'movie_id' : m_id,
+                'action': "movie edited",
+                'timestamp': datetime.datetime.utcnow()
+            })
             edited_movie_link = "http://localhost:5000/home/movies/" + m_id
             return make_response(jsonify( {"url" : edited_movie_link} ), 200)
         else:
@@ -120,6 +131,11 @@ def deleteMovie(m_id):
     result = movies.delete_one( { "_id" : ObjectId(m_id) } )
     if result.deleted_count == 1:
         platforms.delete_one({"movie_id": ObjectId(m_id)})
+        activity_logs.insert_one({
+            'movie_id' : m_id,
+            'action': "movie deleted",
+            'timestamp': datetime.datetime.utcnow()
+        })
         return make_response(jsonify( {"message" : "Movie ID " + m_id + " deleted successfully"} ), 200)
     else:
         return make_response(jsonify( {"error" : "Movie ID " + m_id + " was not found"} ), 404)
