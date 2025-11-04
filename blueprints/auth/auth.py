@@ -2,7 +2,7 @@ from flask import Blueprint, request, make_response, jsonify
 import jwt
 import datetime
 import bcrypt
-from decorators import jwt_required
+from decorators import jwt_required, admin_required
 import globals
 
 authBP = Blueprint("authBP", __name__)
@@ -71,3 +71,14 @@ def logout():
         'timestamp': datetime.datetime.utcnow()
     })
     return make_response(jsonify({'message' : 'Logout successful'}), 200 )
+
+@authBP.route("/home/admin/activity_logs", methods=['GET'])
+@admin_required
+def showAllActivityLogs():
+    data_to_return = []
+    for log in activity_logs.find():
+        log['_id'] = str(log['_id'])
+        data_to_return.append(log)
+    if not data_to_return:
+        return make_response(jsonify( {"error" : "No activity logs were found"} ), 404)
+    return make_response(jsonify(data_to_return), 200)

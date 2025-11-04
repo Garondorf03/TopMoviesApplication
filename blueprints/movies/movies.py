@@ -87,7 +87,7 @@ def addNewMovie():
         }
         platforms.insert_one(new_platform_doc)
         activity_logs.insert_one({
-            'movie_id' : new_movie_id,
+            'movie_id' : str(new_movie_id),
             'action': "movie created",
             'timestamp': datetime.datetime.utcnow()
         })
